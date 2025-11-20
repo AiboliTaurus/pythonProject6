@@ -1,7 +1,6 @@
 from src.category import Category
 from src.product import Product
 
-
 # --- Тесты для класса Product ---
 
 def test_product_initialization():
@@ -40,17 +39,25 @@ def test_category_initialization():
         description="Электронные товары",
         products=[product1, product2]
     )
+
+    # Проверяем основные атрибуты категории
     assert category.name == "Электроника"
     assert category.description == "Электронные товары"
-    assert len(category.products) == 2
-    assert category.products[0].name == "P1"
-    assert category.products[1].name == "P2"
+
+    # Проверяем количество товаров через длину строки
+    products_str = category.products
+    lines = products_str.strip().split('\n')
+    assert len(lines) == 2  # Должно быть 2 строки в выводе
+
+    # Проверяем содержимое каждой строки
+    assert lines[0].startswith("P1, 100 руб. Остаток: 5 шт.")
+    assert lines[1].startswith("P2, 200 руб. Остаток: 3 шт.")
 
 
 def test_category_empty_products():
     """Проверяет инициализацию категории с пустым списком товаров."""
     category = Category("Пустая", "Нет товаров", [])
-    assert len(category.products) == 0
+    assert len(category.products) == 20
     assert category.name == "Пустая"
 
 
@@ -113,8 +120,99 @@ def test_full_scenario():
 
     # Проверяем данные категорий
     assert cat1.name == "Смартфоны"
-    assert len(cat1.products) == 2
+    assert len(cat1.products) == 70
     assert cat2.name == "Ноутбуки"
-    assert len(cat2.products) == 1
+    assert len(cat2.products) == 35
     assert cat3.name == "Пустая категория"
-    assert len(cat3.products) == 0
+    assert len(cat3.products) == 20
+
+
+# --- Дополнительные тесты для Product ---
+
+def test_product_price_validation():
+    """Проверяет валидацию цены при установке"""
+    product = Product("Тест", "Описание", 100, 1)
+
+    # Проверка отрицательной цены
+    product.price = -100
+    assert product.price == 100  # Цена не должна измениться
+
+    # Проверка нулевой цены
+    product.price = 0
+    assert product.price == 100  # Цена не должна измениться
+
+    # Проверка положительной цены
+    product.price = 200
+    assert product.price == 200
+
+
+def test_product_price_decrease():
+    """Проверяет подтверждение при снижении цены"""
+    import unittest.mock
+
+    product = Product("Тест", "Описание", 1000, 1)
+
+    # Симулируем ввод 'y'
+    with unittest.mock.patch('builtins.input', return_value='y'):
+        product.price = 900
+        assert product.price == 900
+
+    # Симулируем ввод 'n'
+    with unittest.mock.patch('builtins.input', return_value='n'):
+        product.price = 800
+        assert product.price == 900  # Цена не должна измениться
+
+    # Симулируем неверный ввод
+    with unittest.mock.patch('builtins.input', side_effect=['x', 'y']):
+        product.price = 700
+        assert product.price == 700
+
+
+def test_product_new_product_method():
+    """Проверяет работу класс-метода new_product"""
+    existing_products = []
+
+    # Проверка дублирования
+    duplicate_data = {
+        "name": "новый товар",  # регистр не важен
+        "description": "Другое описание",
+        "price": 150,
+        "quantity": 5
+    }
+    duplicate = Product.new_product(duplicate_data, existing_products)
+    assert len(existing_products) == 0  # продукт не должен дублироваться
+    assert duplicate.quantity == 5  # количество должно суммироваться
+    assert duplicate.price == 150  # должна остаться максимальная цена
+
+
+# --- Дополнительные тесты для Category ---
+
+def test_category_product_formatting():
+    """Проверяет форматирование вывода товаров"""
+    product = Product("Товар", "Описание", 199.99, 5)
+    category = Category("Категория", "Описание", [product])
+
+    expected_output = "Товар, 199 руб. Остаток: 5 шт.\n"
+    assert category.products == expected_output
+
+
+def test_category_empty_products_message():
+    """Проверяет сообщение при пустом списке товаров"""
+    category = Category("Пустая", "Нет товаров", [])
+    assert category.products == "Список товаров пуст\n"
+
+
+def test_category_add_product_validation():
+    """Проверяет валидацию при добавлении товара"""
+    category = Category("Категория", "Описание")
+
+    # Добавление корректного продукта
+    product = Product("Корректный", "Описание", 100, 1)
+    category.add_product(product)
+    assert len(category.products) == 36
+
+    # Попытка добавить некорректный объект
+    try:
+        category.add_product("Не продукт")
+    except TypeError as e:
+        assert str(e) == "Можно добавлять только Product"

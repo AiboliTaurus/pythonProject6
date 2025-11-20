@@ -39,3 +39,46 @@ def reset_counters():
     """Сбрасывает счётчики перед каждым тестом."""
     Category.category_count = 0
     Category.product_count = 0
+
+
+@pytest.fixture
+def existing_products():
+    """Список существующих продуктов для проверки дубликатов."""
+    return [
+        Product("Товар 1", "Описание 1", 1000, 5),
+        Product("Товар 2", "Описание 2", 2000, 10)
+    ]
+
+
+@pytest.fixture
+def product_data():
+    """Данные для создания нового продукта."""
+    return {
+        "name": "Новый товар",
+        "description": "Новое описание",
+        "price": 1500,
+        "quantity": 8
+    }
+
+
+@pytest.fixture
+def duplicate_product_data():
+    """Данные для проверки дублирования продукта."""
+    return {
+        "name": "Товар 1",  # Совпадает с существующим
+        "description": "Обновленное описание",
+        "price": 1200,
+        "quantity": 3
+    }
+
+
+@pytest.fixture
+def low_price_product():
+    """Продукт с низкой ценой для тестирования валидации."""
+    return Product("Тест", "Описание", 500, 5)
+
+
+@pytest.fixture
+def zero_price_product():
+    """Продукт с нулевой ценой для тестирования валидации."""
+    return Product("Тест", "Описание", 0, 5)
