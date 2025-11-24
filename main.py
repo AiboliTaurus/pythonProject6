@@ -38,11 +38,14 @@ def load_data_from_json(filepath: str) -> Any:
     return categories
 
 
-if __name__ == "__main__":
-    # Демонстрация работы с ручным созданием объектов
+if __name__ == '__main__':
     product1 = Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
     product2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
     product3 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
+
+    print(str(product1))
+    print(str(product2))
+    print(str(product3))
 
     category1 = Category(
         "Смартфоны",
@@ -50,38 +53,10 @@ if __name__ == "__main__":
         [product1, product2, product3]
     )
 
-    print("Исходный список товаров:")
+    print(str(category1))
+
     print(category1.products)
 
-    product4 = Product("55\" QLED 4K", "Фоновая подсветка", 123000.0, 7)
-    category1.add_product(product4)
-
-    print("\nОбновлённый список товаров:")
-    print(category1.products)
-    print(f"Количество товаров в категории: {category1.product_count}")
-
-    # Демонстрация работы с new_product
-    new_product_data = {
-        "name": "Samsung Galaxy S23 Ultra",
-        "description": "256GB, Серый цвет, 200MP камера",
-        "price": 180000.0,
-        "quantity": 5
-    }
-    new_product = Product.new_product(new_product_data)
-
-    print("\nИнформация о новом продукте:")
-    print(new_product.name)
-    print(new_product.description)
-    print(new_product.price)
-    print(new_product.quantity)
-
-    # Тестирование валидации цены
-    print("\nТестирование валидации цены:")
-    new_product.price = 800
-    print(f"Новая цена: {new_product.price}")
-
-    new_product.price = -100
-    print(f"Попытка установить отрицательную цену: {new_product.price}")
-
-    new_product.price = 0
-    print(f"Попытка установить нулевую цену: {new_product.price}")
+    print(product1 + product2)
+    print(product1 + product3)
+    print(product2 + product3)
