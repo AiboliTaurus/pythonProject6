@@ -1,36 +1,43 @@
 from src.product import Product
+from src.сategory_iterator import CategoryIterator
 
 
 class Category:
+    # Атрибуты класса (счётчики)
     category_count = 0
     product_count = 0
 
-    def __init__(self, name: str, description: str, products: list = None):
+    def __init__(self, name: str, description: str, products: list):
+        self.products_list = products if products is not None else []
         self.name = name
         self.description = description
-        self.__products = products if products is not None else []
+        self._products = products  # Защищённый атрибут
 
+        # Увеличиваем счётчик product_count на количество товаров в категории
         if products:
-            for product in self.__products:
-                if not isinstance(product, Product):
-                    raise TypeError("Все элементы должны быть Product")
+            Category.product_count += len(products)
 
+        # Увеличиваем счётчик категорий
         Category.category_count += 1
-        Category.product_count += len(self.__products)
+
+    @property
+    def products(self) -> str:
+        if not self._products:
+            return "Список товаров пуст\n"
+        result = ""
+        for product in self._products:
+            result += str(product) + "\n"
+        return result
+
+    def __str__(self) -> str:
+        total_quantity = sum(product.quantity for product in self._products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
+    def __iter__(self):
+        """Возвращает итератор для обхода товаров категории"""
+        return CategoryIterator(self)
 
     def add_product(self, product):
         if not isinstance(product, Product):
             raise TypeError("Можно добавлять только Product")
-
-        self.__products.append(product)
-        Category.product_count += 1
-
-    @property
-    def products(self) -> str:
-        if not self.__products:
-            return "Список товаров пуст\n"
-
-        result = ""
-        for product in self.__products:
-            result += f"{product.name}, {int(product.price)} руб. Остаток: {product.quantity} шт.\n"
-        return result
+        self.products_list.append(product)  # Важно: добавляем в список!

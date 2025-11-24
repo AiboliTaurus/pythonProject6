@@ -2,7 +2,7 @@ class Product:
     def __init__(self, name: str, description: str, price: float, quantity: int):
         self.name = name
         self.description = description
-        self.__price = price  # Делаем атрибут приватным
+        self.__price = price  # Приватный атрибут
         self.quantity = quantity
 
     @classmethod
@@ -48,3 +48,13 @@ class Product:
                     print("Неверный ввод. Пожалуйста, введите 'y' или 'n'")
 
         self.__price = new_price
+
+    def __str__(self) -> str:
+        """Строковое представление продукта"""
+        return f"{self.name}, {int(self.price)} руб. Остаток: {self.quantity} шт."
+
+    def __add__(self, other) -> float:
+        """Сложение двух продуктов: возвращает суммарную стоимость их остатков на складе"""
+        if not isinstance(other, Product):
+            raise TypeError("Можно складывать только объекты класса Product")
+        return self.price * self.quantity + other.price * other.quantity
