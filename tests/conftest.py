@@ -5,6 +5,7 @@ from src.product import Product
 
 # === ФИКСТУРЫ ===
 
+
 @pytest.fixture
 def sample_product():
     """Стандартный продукт для базовых тестов."""
