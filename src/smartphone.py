@@ -10,13 +10,17 @@ class Smartphone(Product):
         self.memory = memory
         self.color = color
 
+    def get_info(self) -> str:
+        return (f"{self.name} ({self.model}), {self.color}, "
+                f"{self.memory} ГБ, эффективность: {self.efficiency}, "
+                f"цена: {self.price} руб., остаток: {self.quantity} шт.")
+
     def __str__(self) -> str:
         return (f"{self.name} ({self.model}), {self.color}, "
                 f"{self.memory} ГБ, {int(self.price)} руб. Остаток: {self.quantity} шт.")
 
     def __add__(self, other):
-        """Сложение двух смартфонов. Используем type() для строгой проверки класса"""
-        if type(other) is not type(self):  # Строгая проверка: тот же класс
+        if type(other) is not type(self):
             raise TypeError("Можно складывать только объекты одного класса")
 
         total_quantity = self.quantity + other.quantity

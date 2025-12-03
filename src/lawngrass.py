@@ -9,14 +9,18 @@ class LawnGrass(Product):
         self.germination_period = germination_period
         self.color = color
 
+    def get_info(self) -> str:
+        return (f"{self.name}, цвет: {self.color}, произв.: {self.country}, "
+                f"прорастание: {self.germination_period}, цена: {self.price} руб., "
+                f"остаток: {self.quantity} шт.")
+
     def __str__(self) -> str:
         return (f"{self.name}, {self.color}, произв.: {self.country}, "
                 f"прорастание: {self.germination_period}, "
                 f"{int(self.price)} руб. Остаток: {self.quantity} шт.")
 
     def __add__(self, other):
-        """Сложение двух газонных трав. Используем type() для строгой проверки класса"""
-        if type(other) is not type(self):  # Строгая проверка: тот же класс
+        if type(other) is not type(self):
             raise TypeError("Можно складывать только объекты одного класса")
 
         total_quantity = self.quantity + other.quantity
