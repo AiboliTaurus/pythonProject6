@@ -1,9 +1,23 @@
-class Product:
+from src.base_product import BaseProduct
+from src.creation_logger import CreationLogger
+
+
+class Product(CreationLogger, BaseProduct):
+    """
+    Базовый класс продукта с логированием создания.
+    Наследует:
+    - CreationLogger (для вывода информации о создании)
+    - BaseProduct (абстрактный базовый класс)
+    """
+
     def __init__(self, name: str, description: str, price: float, quantity: int):
         self.name = name
         self.description = description
         self.__price = price  # Приватный атрибут
         self.quantity = quantity
+        # super() вызовет __init__ миксина CreationLogger,
+        # который выведет информацию и передаст управление дальше
+        super().__init__(name, description, price, quantity)
 
     @classmethod
     def new_product(cls, product_data: dict, existing_products: list = None):
@@ -49,12 +63,20 @@ class Product:
 
         self.__price = new_price
 
+    # Реализация абстрактных методов BaseProduct
+    def get_info(self) -> str:
+        return f"{self.name}, {self.description}, цена: {self.price} руб., остаток: {self.quantity} шт."
+
+    def set_price(self, new_price: float) -> None:
+        self.price = new_price  # Используем существующий setter
+
+    def get_quantity(self) -> int:
+        return self.quantity
+
     def __str__(self) -> str:
-        """Строковое представление продукта"""
         return f"{self.name}, {int(self.price)} руб. Остаток: {self.quantity} шт."
 
     def __add__(self, other) -> float:
-        """Сложение двух продуктов: возвращает суммарную стоимость их остатков на складе"""
         if not isinstance(other, Product):
             raise TypeError("Можно складывать только объекты класса Product")
         return self.price * self.quantity + other.price * other.quantity

@@ -7,18 +7,25 @@ class Category:
     category_count = 0
     product_count = 0
 
-    def __init__(self, name: str, description: str, products: list):
-        self.products_list = products if products is not None else []
+    def __init__(self, name: str, description: str, products: list = None):
+        # Инициализируем основной список продуктов
+        self._products = []
+
         self.name = name
         self.description = description
-        self._products = products  # Защищённый атрибут
 
-        # Увеличиваем счётчик product_count на количество товаров в категории
-        if products:
-            Category.product_count += len(products)
+        # Добавляем начальные продукты через add_product для проверки типов
+        if products is not None:
+            for product in products:
+                self.add_product(product)
 
         # Увеличиваем счётчик категорий
         Category.category_count += 1
+
+    @property
+    def products_list(self) -> list:
+        """Возвращает список продуктов (для совместимости с тестами)."""
+        return self._products
 
     @property
     def products(self) -> str:
@@ -38,6 +45,20 @@ class Category:
         return CategoryIterator(self)
 
     def add_product(self, product):
+        """
+        Добавляет продукт в категорию.
+        Проверяет, что объект является экземпляром Product или его наследником.
+        Обновляет счётчик product_count.
+        """
+        # Проверка типа: product должен быть экземпляром Product или его подкласса
         if not isinstance(product, Product):
-            raise TypeError("Можно добавлять только Product")
-        self.products_list.append(product)  # Важно: добавляем в список!
+            raise TypeError(
+                f"Можно добавлять только объекты класса Product или его наследников. "
+                f"Получен тип: {type(product).__name__}"
+            )
+
+        # Добавляем продукт в список
+        self._products.append(product)
+
+        # Увеличиваем общий счётчик продуктов
+        Category.product_count += 1

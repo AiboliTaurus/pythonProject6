@@ -8,6 +8,7 @@ from src.сategory_iterator import CategoryIterator
 
 # --- Тесты для класса Product ---
 
+
 def test_product_initialization():
     """Проверяет, что объект Product корректно инициализируется."""
     product = Product(
@@ -137,21 +138,27 @@ def test_category_add_product_validation():
     """Проверяет валидацию при добавлении товара."""
     category = Category("Категория", "Описание", [])
 
-    # Корректный продукт
     product = Product("Корректный", "Описание", 100, 1)
-
-    # Убедимся, что product — это действительно объект Product
     assert isinstance(product, Product)
 
     category.add_product(product)
 
-    # Проверяем, что продукт добавился
     assert len(category.products_list) == 1
-    assert category.products_list[0] == product  # Дополнительно: проверка содержимого
+    assert category.products_list[0] == product
 
-    # Некорректный тип
-    with pytest.raises(TypeError, match="Можно добавлять только Product"):
+    # Исправленный match — теперь совпадает с реальным сообщением
+    with pytest.raises(TypeError, match="Можно добавлять только объекты класса Product или его наследников"):
         category.add_product("Не продукт")
+
+
+def test_category_count_and_product_count():
+    """Тест подсчёта категорий и товаров."""
+    products1 = [Product("P1", "Desc", 100, 1), Product("P2", "Desc", 200, 2)]
+    products2 = [Product("P3", "Desc", 300, 3)]
+    Category("Cat1", "Desc", products1)
+    Category("Cat2", "Desc", products2)
+    assert Category.category_count == 2
+    assert Category.product_count == 3
 
 
 # --- Тесты для счётчиков ---
