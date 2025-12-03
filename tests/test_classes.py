@@ -151,6 +151,16 @@ def test_category_add_product_validation():
         category.add_product("Не продукт")
 
 
+def test_category_count_and_product_count():
+    """Тест подсчёта категорий и товаров."""
+    products1 = [Product("P1", "Desc", 100, 1), Product("P2", "Desc", 200, 2)]
+    products2 = [Product("P3", "Desc", 300, 3)]
+    Category("Cat1", "Desc", products1)
+    Category("Cat2", "Desc", products2)
+    assert Category.category_count == 2
+    assert Category.product_count == 3
+
+
 # --- Тесты для счётчиков ---
 
 def test_category_count_increment():
