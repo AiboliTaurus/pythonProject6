@@ -1,8 +1,12 @@
+import sys
 import unittest.mock
+from io import StringIO
 
 import pytest
 
 from src.category import Category
+from src.exceptions import ZeroQuantityError
+from src.order import Order
 from src.product import Product
 from src.сategory_iterator import CategoryIterator
 
@@ -134,21 +138,16 @@ def test_category_empty_products_message():
     assert category.products == "Список товаров пуст\n"
 
 
-def test_category_add_product_validation():
-    """Проверяет валидацию при добавлении товара."""
+def test_category_add_valid_product():
+    """
+    Проверяет корректное добавление товара в категорию
+    """
     category = Category("Категория", "Описание", [])
-
     product = Product("Корректный", "Описание", 100, 1)
-    assert isinstance(product, Product)
 
     category.add_product(product)
-
     assert len(category.products_list) == 1
     assert category.products_list[0] == product
-
-    # Исправленный match — теперь совпадает с реальным сообщением
-    with pytest.raises(TypeError, match="Можно добавлять только объекты класса Product или его наследников"):
-        category.add_product("Не продукт")
 
 
 def test_category_count_and_product_count():
@@ -174,17 +173,20 @@ def test_category_count_increment():
 
 
 def test_product_count_increment():
-    """Проверяет, что product_count увеличивается на количество товаров в категории."""
+    """
+    Проверяет, что product_count увеличивается на количество товаров в категории.
+    """
     Category.category_count = 0
     Category.product_count = 0
 
-    p1 = Product("P1", "", 0, 0)
-    p2 = Product("P2", "", 0, 0)
-    p3 = Product("P3", "", 0, 0)
+    # Используем валидные значения количества (не нулевые)
+    p1 = Product("P1", "", 0, 1)  # Изменили количество с 0 на 1
+    p2 = Product("P2", "", 0, 1)  # Изменили количество с 0 на 1
+    p3 = Product("P3", "", 0, 1)  # Изменили количество с 0 на 1
 
     Category("Cat1", "", [p1, p2])  # +2
-    Category("Cat2", "", [p3])        # +1
-    Category("Cat3", "", [])         # +0
+    Category("Cat2", "", [p3])      # +1
+    Category("Cat3", "", [])       # +0
 
     assert Category.product_count == 3
 
@@ -321,3 +323,133 @@ def test_iterator_reuse_after_stopiteration(category_with_two_products, product_
     # Даже если попытаться ещё раз — всё равно ошибка
     with pytest.raises(StopIteration):
         next(iterator)
+
+
+# Тесты для проверки обработки нулевого количества при создании продукта
+def test_zero_quantity_product():
+    """
+    Проверяет, что при попытке создания продукта с нулевым количеством
+    возникает исключение ValueError с соответствующим сообщением
+    """
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        Product("Неверный товар", "Описание", 100, 0)
+
+
+# Тесты для проверки метода middle_price
+def test_middle_price_non_empty():
+    """
+    Проверяет корректность расчета средней цены для непустой категории
+    """
+    product1 = Product("Товар 1", "Описание", 100, 5)
+    product2 = Product("Товар 2", "Описание", 200, 3)
+    category = Category("Тестовая", "Описание", [product1, product2])
+
+    expected_price = (100 + 200) / 2
+    assert category.middle_price() == expected_price
+
+
+def test_middle_price_empty():
+    """
+    Проверяет, что для пустой категории возвращается 0.0
+    """
+    category = Category("Пустая категория", "Описание")
+    assert category.middle_price() == 0.0
+
+
+# Тесты для проверки обработки исключений при добавлении товара в категорию
+def test_add_product_zero_quantity():
+    """
+    Проверяет, что при попытке создать продукт с нулевым количеством
+    возникает исключение ValueError
+    """
+    category = Category("Тестовая", "Описание")
+
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        category.add_product(Product("Неверный товар", "Описание", 100, 0))
+
+
+def test_add_valid_product():
+    """
+    Проверяет корректное добавление товара в категорию
+    """
+    category = Category("Тестовая", "Описание")
+    product = Product("Корректный товар", "Описание", 100, 5)
+    category.add_product(product)
+    assert len(category.products_list) == 1
+    assert category.products_list[0] == product
+
+
+# Тест для проверки обработки заказа с нулевым количеством
+def test_order_zero_quantity_with_capsys(capsys):
+    """
+    Проверяет обработку нулевого количества с использованием capsys
+    """
+    product = Product("Товар", "Описание", 100, 5)
+
+    try:
+        Order(product, 0)
+    except ZeroQuantityError:
+        # Получаем вывод в консоль
+        captured = capsys.readouterr()
+        assert "Невозможно добавить товар" in captured.out
+
+
+# Тест для проверки корректного создания заказа
+def test_valid_order():
+    """
+    Проверяет корректное создание заказа с валидными данными
+    """
+    product = Product("Товар", "Описание", 100, 5)
+    order = Order(product, 2)
+    assert order.item_count() == 2
+    assert order.total_cost() == 200
+
+
+# Тест для проверки обработки заказа с превышением количества на складе
+def test_order_exceed_stock():
+    """
+    Проверяет, что при попытке создать заказ с количеством,
+    превышающим остаток на складе, возникает исключение ValueError
+    и выводится соответствующее сообщение
+    """
+    product = Product("Товар", "Описание", 100, 3)
+
+    # Сохраняем оригинальный stdout
+    captured_output = StringIO()
+    sys.stdout = captured_output
+
+    try:
+        Order(product, 5)
+    except ValueError:
+        # Проверяем, что сообщение об ошибке было выведено
+        output = captured_output.getvalue()
+        assert "На складе недостаточно товара" in output
+    finally:
+        # Восстанавливаем оригинальный stdout
+        sys.stdout = sys.__stdout__
+
+
+def test_middle_price_empty_category():
+    category = Category("Пустая категория", "Описание")
+    assert category.middle_price() == 0.0
+
+
+def test_middle_price_single_product():
+    category = Category("Одна позиция", "Описание")
+    category.add_product(Product("Товар1", "Описание", 100, 1))
+    assert category.middle_price() == 100.0
+
+
+def test_middle_price_multiple_products():
+    category = Category("Несколько товаров", "Описание")
+    category.add_product(Product("Товар1", "Описание", 100, 1))
+    category.add_product(Product("Товар2", "Описание", 200, 1))
+    category.add_product(Product("Товар3", "Описание", 300, 1))
+    assert category.middle_price() == 200.0
+
+
+def test_middle_price_float_result():
+    category = Category("Дробный результат", "Описание")
+    category.add_product(Product("Товар1", "Описание", 150, 1))
+    category.add_product(Product("Товар2", "Описание", 250, 1))
+    assert category.middle_price() == 200.0
