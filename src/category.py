@@ -1,3 +1,4 @@
+from src.exceptions import ZeroQuantityError
 from src.product import Product
 from src.сategory_iterator import CategoryIterator
 
@@ -45,20 +46,35 @@ class Category:
         return CategoryIterator(self)
 
     def add_product(self, product):
-        """
-        Добавляет продукт в категорию.
-        Проверяет, что объект является экземпляром Product или его наследником.
-        Обновляет счётчик product_count.
-        """
-        # Проверка типа: product должен быть экземпляром Product или его подкласса
-        if not isinstance(product, Product):
-            raise TypeError(
-                f"Можно добавлять только объекты класса Product или его наследников. "
-                f"Получен тип: {type(product).__name__}"
-            )
+        try:
+            # Проверяем тип продукта
+            if not isinstance(product, Product):
+                raise TypeError(
+                    f"Можно добавлять только объекты класса Product или его наследников. "
+                    f"Получен тип: {type(product).__name__}"
+                )
 
-        # Добавляем продукт в список
-        self._products.append(product)
+            # Проверяем количество товара
+            if product.quantity == 0:
+                raise ZeroQuantityError(product.name)
 
-        # Увеличиваем общий счётчик продуктов
-        Category.product_count += 1
+            self._products.append(product)
+            Category.product_count += 1
+            print(f"Товар '{product.name}' успешно добавлен")
+
+        except ValueError as ve:
+            raise ZeroQuantityError(str(ve)) from ve
+        except ZeroQuantityError as zqe:
+            print(zqe)
+            raise
+
+    def middle_price(self) -> float:
+        """
+        Подсчитывает среднюю цену всех товаров в категории.
+        Обрабатывает случай отсутствия товаров.
+        """
+        if not self._products:
+            return 0.0
+
+        total_price = sum(product.price for product in self._products)
+        return total_price / len(self._products)
