@@ -1,3 +1,4 @@
+from src.exceptions import ZeroQuantityError
 from src.inventory_item import InventoryItem
 from src.product import Product
 
@@ -9,15 +10,30 @@ class Order(InventoryItem):
     """
 
     def __init__(self, product: Product, quantity: int):
-        if quantity <= 0:
-            raise ValueError("Количество товара в заказе должно быть положительным")
-        if product.quantity < quantity:
-            raise ValueError(f"На складе недостаточно товара: доступно {product.quantity}, запрошено {quantity}")
+        try:
+            # Проверка на нулевое количество
+            if quantity <= 0:
+                raise ZeroQuantityError(product.name)
 
-        self._product = product
-        self._quantity = quantity
-        # Резервируем товар на складе
-        self._product.quantity -= quantity
+            # Проверка наличия товара на складе
+            if product.quantity < quantity:
+                raise ValueError(f"На складе недостаточно товара: доступно {product.quantity}, запрошено {quantity}")
+
+            # Если все проверки пройдены
+            self._product = product
+            self._quantity = quantity
+            # Резервируем товар на складе
+            self._product.quantity -= quantity
+            print(f"Товар '{self._product.name}' успешно добавлен в заказ")
+
+        except ZeroQuantityError as zqe:
+            print(zqe)
+
+        except ValueError as ve:
+            print(f"Ошибка: {ve}")
+
+        finally:
+            print("Обработка добавления товара в заказ завершена")
 
     @property
     def name(self) -> str:
