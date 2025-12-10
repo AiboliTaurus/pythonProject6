@@ -183,3 +183,8 @@ def category_with_two_products(product_a, product_b):
         description="Тестовая категория",
         products=[product_a, product_b]
     )
+
+
+@pytest.fixture
+def sample_category(sample_product):
+    return Category("Образец", "Описание", [sample_product])
